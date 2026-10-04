@@ -1,0 +1,64 @@
+name: apexrep
+
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+  environment:
+    DATABASE_URL: postgresql://apexrep:apexrep@db:5432/apexrep
+    ALS_API_KEY: ${ALS_API_KEY:-}
+    INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+    WORKER_LOOP_INTERVAL_S: ${WORKER_LOOP_INTERVAL_S:-30}
+    WORKER_HEARTBEAT_STALE_S: ${WORKER_HEARTBEAT_STALE_S:-90}
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: apexrep
+      POSTGRES_PASSWORD: apexrep
+      POSTGRES_DB: apexrep
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apexrep -d apexrep"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  migrate:
+    <<: *backend
+    command: ["apexrep-migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *backend
+    command: ["apexrep-worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: ./frontend
+    environment:
+      BACKEND_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  db-data:
