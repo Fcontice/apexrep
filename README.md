@@ -33,12 +33,27 @@ cd frontend
 npm run dev
 ```
 
+The frontend needs `BACKEND_URL` and `INTERNAL_TOKEN` in `frontend/.env.local`; the token must match the backend's `INTERNAL_TOKEN` in `.env`.
+
+## API types
+
+The frontend's API types are generated from the backend's OpenAPI schema. After changing a route or response model:
+
+```
+cd backend
+uv run apexrep-export-openapi
+cd ../frontend
+npm run gen:api
+```
+
 ## Checks
 
 ```
 cd backend
 uv run ruff check . ; uv run ruff format --check . ; uv run mypy ; uv run pytest
 ```
+
+The player service tests run against the Docker Postgres in a separate `apexrep_test` database, and are skipped if it is not running (`docker compose up -d db`).
 
 ```
 cd frontend

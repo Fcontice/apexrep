@@ -7,7 +7,7 @@ x-backend: &backend
   environment:
     DATABASE_URL: postgresql://apexrep:apexrep@db:5432/apexrep
     ALS_API_KEY: ${ALS_API_KEY:-}
-    INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+    INTERNAL_TOKEN: ${INTERNAL_TOKEN:-dev-internal-token}
     WORKER_LOOP_INTERVAL_S: ${WORKER_LOOP_INTERVAL_S:-30}
     WORKER_HEARTBEAT_STALE_S: ${WORKER_HEARTBEAT_STALE_S:-90}
 
@@ -55,6 +55,7 @@ services:
       context: ./frontend
     environment:
       BACKEND_URL: http://api:8000
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-dev-internal-token}
     ports:
       - "3000:3000"
     depends_on:
