@@ -83,6 +83,7 @@ The browser only talks to the Next.js app. Next.js renders pages on the server a
 | Database | Neon Postgres (Launch plan), plain SQL migrations in `migrations/` |
 | Frontend | Next.js 16 (App Router), React, TypeScript, TanStack Query, Recharts, Tailwind v4 |
 | Hosting (suggested) | Frontend on Vercel; backend and worker on Railway or Fly.io |
+| Domain | `apexrep.xyz` (the frontend's `SITE_URL`, used for canonical and Open Graph URLs) |
 
 Database notes:
 
@@ -237,7 +238,7 @@ Match detection rules, comparing the latest stored snapshot A to the new snapsho
 - If `selected_legend` is the same in A and B, `tracker_deltas` = B minus A for keys present in both, positive deltas only. Trackers can be re-equipped without a legend swap, so keys in only one snapshot are ignored.
 - If the legend changed, record the match with `legend = B.selected_legend` and empty `tracker_deltas`; deltas across a legend swap are not trustworthy. Possible refinement for Phase 4: trackers flagged `global` in the response are account-wide, so their deltas would still be valid across a swap.
 - Several games can land inside one polling window. Treat one detected row as "one or more matches" and label it that way in the UI.
-- Session gap: if the player's previous successful poll (`last_polled_at` before this one) was more than 30 minutes ago, insert the row with `kind = 'session_gap'` and null deltas instead of a match. The gap is measured from the last poll, not from A, because A can be hours old for a player who was idle.
+- Session gap: if the player's previous successful poll (`last_polled_at` before this one) was more than 30 minutes ago, insert the row with `kind = 'session_gap'` and null deltas instead of a match. Gap rows are only written for tracked players; for an untracked player, who is only polled when someone views the page, every visit would otherwise produce one. The gap is measured from the last poll, not from A, because A can be hours old for a player who was idle.
 - Known limitation: level progress is a whole percent, so a short match that earns little XP on a legend with no moving tracker is missed.
 - Known limitation: a player at the level cap (level 500 on the last prestige tier) earns no more level progress, so their matches are only detected through tracker changes.
 
@@ -304,7 +305,7 @@ Build in this order; each phase ends with working, tested code and its own commi
    - Done when: searching a real PC EA name lands on `/player/pc/{uid}` with stats; the stats are in the page's server HTML (view source); a second load within 5 minutes makes no ALS call; two simultaneous loads make one.
 4. **Tracking worker.** Track route, the polling loop, change-only snapshot storage, match detection, tracking expiry.
    - Done when: tests on snapshot pairs cover same legend, legend swap, tracker re-equip, level-up wrap, rank-only change, no change, and session gap; a tracked test account gains match rows after playing.
-5. **History UI.** History and matches routes, Trends and Matches tabs.
+5. **History UI.** History and matches routes, Trends and Matches tabs. Also the Home page's map rotation and Predator cards with their `/api/meta/*` routes, deferred from Phase 3.
    - Done when: charts render from at least two days of snapshots; matches paginate.
 6. **Hardening.** Per-IP limits, tracked-player cap and eviction, raw retention job, crawler handling, sitemap and metadata, attribution and EA disclaimer footer, error states, deploy config (Neon pooled connection string, internal token on both hosts).
 
