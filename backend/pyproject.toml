@@ -13,6 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
+apexrep-export-openapi = "apexrep.api.export_openapi:main"
 apexrep-lookup = "apexrep.als.lookup:main"
 apexrep-migrate = "apexrep.migrate:main"
 apexrep-record-fixture = "apexrep.als.record:main"

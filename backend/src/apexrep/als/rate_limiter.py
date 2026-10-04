@@ -26,6 +26,10 @@ class RateLimiter:
         self._sleep: Sleep = sleep
         self._next_slot: float = 0.0
 
+    def backlog_s(self) -> float:
+        """How long a call made now would wait for its slot."""
+        return max(0.0, self._next_slot - self._clock())
+
     async def acquire(self) -> None:
         now = self._clock()
         slot = max(now, self._next_slot)

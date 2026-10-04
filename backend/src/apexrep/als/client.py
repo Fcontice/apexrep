@@ -46,6 +46,9 @@ class AlsClient:
         )
         return parse_bridge(body, platform)
 
+    def backlog_s(self) -> float:
+        return self._rate_limiter.backlog_s()
+
     async def aclose(self) -> None:
         await self._http.aclose()
 
