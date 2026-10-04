@@ -1,0 +1,500 @@
+{
+  "global": {
+    "name": "vinyasaflowTTV",
+    "tag": "BURT",
+    "uid": "1011572188996",
+    "avatar": "https://secure.download.dm.origin.com/production/avatar/prod/1/599/208x208.JPEG",
+    "platform": "PC",
+    "level": 382,
+    "toNextLevelPercent": 11,
+    "internalUpdateCount": 14585,
+    "bans": {
+      "isActive": false,
+      "remainingSeconds": 0,
+      "last_banReason": "COMPETITIVE_DODGE_COOLDOWN"
+    },
+    "rank": {
+      "rankScore": 12747,
+      "rankName": "Diamond",
+      "rankDiv": 4,
+      "ladderPosPlatform": -1,
+      "rankImg": "https://api.mozambiquehe.re/assets/ranks/diamond4.png",
+      "rankedSeason": "br_ranked_s30_s2",
+      "rankedSeasonMeta": {
+        "start": 1789491600,
+        "end": 1793728800
+      },
+      "ALStopPercent": 5.21,
+      "ALStopInt": 284037,
+      "ALStopPercentGlobal": 5.4,
+      "ALStopIntGlobal": 311677,
+      "ALSFlag": false
+    },
+    "arena": {
+      "rankScore": 0,
+      "rankName": "Unranked",
+      "rankDiv": 4,
+      "ladderPosPlatform": -1,
+      "rankImg": "https://api.mozambiquehe.re/assets/ranks/unranked4.png",
+      "rankedSeason": "arenas_ranked",
+      "ALStopPercent": "No game this split",
+      "ALStopInt": "No game this split",
+      "ALStopPercentGlobal": "No game this split",
+      "ALStopIntGlobal": "No game this split",
+      "ALSFlag": true
+    },
+    "battlepass": {
+      "level": null,
+      "history": null
+    },
+    "internalParsingVersion": 2,
+    "badges": [
+      {
+        "name": "null",
+        "value": 0
+      },
+      {
+        "name": "You're Tiering Me Apart: Ranked Season 17",
+        "value": 122
+      },
+      {
+        "name": "Wintertide Restoration",
+        "value": 0
+      },
+      {
+        "name": "Team. Work.",
+        "value": 5
+      },
+      {
+        "name": "Fool Proof",
+        "value": 0
+      }
+    ],
+    "levelPrestige": 1
+  },
+  "realtime": {
+    "lobbyState": "open",
+    "isOnline": 0,
+    "isInGame": 0,
+    "canJoin": 0,
+    "partyFull": 0,
+    "selectedLegend": "Octane",
+    "currentState": "offline",
+    "currentStateSinceTimestamp": -1,
+    "currentStateAsText": "Offline"
+  },
+  "legends": {
+    "selected": {
+      "LegendName": "Octane",
+      "data": [
+        {
+          "name": "Career Kills",
+          "value": 12988,
+          "key": "career_kills",
+          "global": true
+        },
+        {
+          "name": "Passive health regenerated",
+          "value": 5019767,
+          "key": "passive_health_regen",
+          "global": false
+        },
+        {
+          "name": "BR Damage",
+          "value": 2387825,
+          "key": "damage",
+          "global": false
+        }
+      ],
+      "gameInfo": {
+        "skin": "Godly Speed",
+        "skinRarity": "Legendary",
+        "frame": "Mastiff Master",
+        "frameRarity": "Legendary",
+        "pose": "Spin and Flick",
+        "poseRarity": "Heirloom",
+        "intro": "Run fast, hit fast, win fast",
+        "introRarity": "Heirloom",
+        "badges": [
+          {
+            "name": "Assassin",
+            "value": 5,
+            "category": "Octane"
+          },
+          {
+            "name": "You're Tiering Me Apart: Ranked Season 17",
+            "value": 122,
+            "category": "Account Badges"
+          },
+          {
+            "name": "Octane's Wrath",
+            "value": 5,
+            "category": "Octane"
+          },
+          {
+            "name": "Octane's Wrath",
+            "value": 5,
+            "category": "Octane"
+          }
+        ]
+      },
+      "ImgAssets": {
+        "icon": "https://api.mozambiquehe.re/assets/icons/octane.png",
+        "banner": "https://api.mozambiquehe.re/assets/banners/octane.jpg"
+      }
+    },
+    "all": {
+      "Global": {
+        "data": [
+          {
+            "name": "Career Kills",
+            "value": 12988,
+            "key": "career_kills",
+            "rank": {
+              "rankPos": 352073,
+              "topPercent": 17.1
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 229779,
+              "topPercent": 14.2
+            }
+          }
+        ],
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/global.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/global.jpg"
+        }
+      },
+      "Revenant": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/revenant.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/revenant.jpg"
+        }
+      },
+      "Crypto": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/crypto.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/crypto.jpg"
+        }
+      },
+      "Horizon": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/horizon.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/horizon.jpg"
+        }
+      },
+      "Gibraltar": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/gibraltar.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/gibraltar.jpg"
+        }
+      },
+      "Wattson": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/wattson.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/wattson.jpg"
+        }
+      },
+      "Fuse": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/fuse.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/fuse.jpg"
+        }
+      },
+      "Bangalore": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/bangalore.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/bangalore.jpg"
+        }
+      },
+      "Wraith": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/wraith.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/wraith.jpg"
+        }
+      },
+      "Octane": {
+        "data": [
+          {
+            "name": "BR Kills",
+            "value": 4264,
+            "key": "kills",
+            "rank": {
+              "rankPos": 155800,
+              "topPercent": 2.82
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 79470,
+              "topPercent": 2.62
+            }
+          },
+          {
+            "name": "BR Damage",
+            "value": 2387825,
+            "key": "damage",
+            "rank": {
+              "rankPos": 49223,
+              "topPercent": 1.23
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 24433,
+              "topPercent": 1.04
+            }
+          },
+          {
+            "name": "Stim distance traveled",
+            "value": 1620194,
+            "key": "distance_on_stim",
+            "rank": {
+              "rankPos": 32365,
+              "topPercent": 1.52
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 12382,
+              "topPercent": 1.06
+            }
+          },
+          {
+            "name": "Passive health regenerated",
+            "value": 5019767,
+            "key": "passive_health_regen",
+            "rank": {
+              "rankPos": 3687,
+              "topPercent": 0.34
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 3045,
+              "topPercent": 0.57
+            }
+          }
+        ],
+        "gameInfo": {
+          "badges": [
+            {
+              "name": "Assassin",
+              "value": 5
+            },
+            {
+              "name": "Reinforcement Recall",
+              "value": 0
+            },
+            {
+              "name": "Octane's Wrath",
+              "value": 5
+            }
+          ]
+        },
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/octane.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/octane.jpg"
+        }
+      },
+      "Bloodhound": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/bloodhound.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/bloodhound.jpg"
+        }
+      },
+      "Caustic": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/caustic.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/caustic.jpg"
+        }
+      },
+      "Lifeline": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/lifeline.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/lifeline.jpg"
+        }
+      },
+      "Pathfinder": {
+        "data": [
+          {
+            "name": "BR Kills",
+            "value": 2171,
+            "key": "kills",
+            "rank": {
+              "rankPos": 488321,
+              "topPercent": 10.92
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 275782,
+              "topPercent": 10.06
+            }
+          },
+          {
+            "name": "BR Damage",
+            "value": 1159467,
+            "key": "damage",
+            "rank": {
+              "rankPos": 225907,
+              "topPercent": 6.12
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 129949,
+              "topPercent": 5.65
+            }
+          },
+          {
+            "name": "BR Season 15 kills",
+            "value": 919,
+            "key": "kills_season_15",
+            "rank": {
+              "rankPos": 3065,
+              "topPercent": 5.85
+            },
+            "rankPlatformSpecific": {
+              "rankPos": 1784,
+              "topPercent": 3.92
+            }
+          }
+        ],
+        "gameInfo": {
+          "badges": [
+            {
+              "name": "NOT_IMPLEMENTED_YET_1232640383",
+              "value": 122
+            },
+            {
+              "name": "Assassin",
+              "value": 5
+            },
+            {
+              "name": "Pathfinder's Wrath",
+              "value": 5
+            }
+          ]
+        },
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/pathfinder.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/pathfinder.jpg"
+        }
+      },
+      "Loba": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/loba.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/loba.jpg"
+        }
+      },
+      "Mirage": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/mirage.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/mirage.jpg"
+        }
+      },
+      "Rampart": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/rampart.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/rampart.jpg"
+        }
+      },
+      "Valkyrie": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/valkyrie.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/valkyrie.jpg"
+        }
+      },
+      "Seer": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/seer.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/seer.jpg"
+        }
+      },
+      "Ash": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/ash.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/ash.jpg"
+        }
+      },
+      "Mad Maggie": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/mad maggie.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/mad maggie.jpg"
+        }
+      },
+      "Newcastle": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/newcastle.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/newcastle.jpg"
+        }
+      },
+      "Vantage": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/vantage.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/vantage.jpg"
+        }
+      },
+      "Catalyst": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/catalyst.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/catalyst.jpg"
+        }
+      },
+      "Ballistic": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/ballistic.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/ballistic.jpg"
+        }
+      },
+      "Conduit": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/conduit.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/conduit.jpg"
+        }
+      },
+      "Alter": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/alter.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/alter.jpg"
+        }
+      },
+      "Sparrow": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/sparrow.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/sparrow.jpg"
+        }
+      },
+      "Axle": {
+        "ImgAssets": {
+          "icon": "https://api.mozambiquehe.re/assets/icons/axle.png",
+          "banner": "https://api.mozambiquehe.re/assets/banners/axle.jpg"
+        }
+      }
+    }
+  },
+  "mozambiquehere_internal": {
+    "isNewToDB": false,
+    "clusterSrv": "fr-1"
+  },
+  "total": {
+    "career_kills": {
+      "name": "Career Kills",
+      "value": 12988
+    },
+    "kills": {
+      "name": "BR Kills",
+      "value": 6435
+    },
+    "damage": {
+      "name": "BR Damage",
+      "value": 3547292
+    },
+    "distance_on_stim": {
+      "name": "Stim distance traveled",
+      "value": 1620194
+    },
+    "passive_health_regen": {
+      "name": "Passive health regenerated",
+      "value": 5019767
+    },
+    "kills_season_15": {
+      "name": "BR Season 15 kills",
+      "value": 919
+    },
+    "kd": {
+      "value": "-1",
+      "name": "KD"
+    }
+  },
+  "processingTime": 0.2541468143463135
+}

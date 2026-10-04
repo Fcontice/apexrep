@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     internal_token: SecretStr = SecretStr("")
     migrations_dir: Path = REPO_ROOT / "migrations"
 
+    als_base_url: str = "https://api.apexlegendsstatus.com"
+    als_timeout_s: float = 10.0
+    als_max_retries: int = 2
+    als_retry_backoff_s: float = 1.0
+    # The 5 requests/second ALS limit is split between the two processes.
+    als_rate_backend_per_s: float = 1.5
+    als_rate_worker_per_s: float = 3.0
+
     db_pool_min_size: int = 1
     db_pool_max_size: int = 5
 
