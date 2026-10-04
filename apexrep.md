@@ -24,8 +24,8 @@ All player data comes from the [Apex Legends Status API](https://apexlegendsapi.
 
 | Endpoint | Use in app | Params |
 | --- | --- | --- |
-| `GET /nametouid` | Resolve name to UID | `player`, `platform` (PC, PS4, X1) |
-| `GET /bridge` | Player stats | `uid` + `platform` (preferred) or `player` + `platform`; also `merge`, `removeMerged` |
+| `GET /bridge` | Player stats, and name resolution | `uid` + `platform` (polling and refresh) or `player` + `platform` (resolving a name; the response carries the UID); also `merge`, `removeMerged` |
+| `GET /nametouid` | Not used | On 2026-10-04 it failed for PC names that `/bridge?player=` resolved, so names are resolved through `/bridge` |
 | `GET /maprotation` | Map rotation widget | `version=2` |
 | `GET /predator` | Predator RP threshold | none |
 | `GET /servers` | Server status | none |
@@ -35,12 +35,16 @@ Auth: send the key as an `Authorization` header. Read `X-Current-Rate` from resp
 Constraints the build must respect:
 
 - PC players are looked up by their EA/Origin name, even if they play on Steam. A SteamID cannot be mapped to an EA UID.
-- Stats only include the currently selected legend and the trackers equipped on it. Everything shown is partial.
+- For a Steam player the response's `global.name` is the Steam display name, not the EA ID, and it cannot be used for lookup. Confirmed 2026-10-04: EA ID `xXfrankX` returns `name: "vinyasaflowTTV"`, and looking up `vinyasaflowTTV` is a 404. The EA ID is unrelated to the Steam name; the player finds it at ea.com by signing in with Steam.
+- `realtime` (online, in game) is not reliable: it reported the same player offline while they were in the game. Do not build on it.
+- Each tracker entry has a `global` flag. `true` means an account-wide tracker (for example Career Kills) that stays the same whichever legend is selected; `false` means it belongs to the selected legend.
+- Live stats only cover the currently selected legend and the trackers equipped on it, and that list can be empty. Everything shown is partial. The response also carries `legends.all` (trackers ALS last saw on each other legend) and `total` (sums across legends); the MVP does not use them, but they are kept in `raw`.
+- `global.level` restarts from 1 when a player prestiges; `global.levelPrestige` counts the prestiges. Level is only comparable together with prestige.
 - Match history, leaderboard, and legacy history endpoints are closed to new users. Do not depend on them.
-- Error codes: 400 retry later, 403 bad key, 404 player not found, 405 upstream error, 410 bad platform, 429 rate limited, 500 internal error. One known client library reports the API can return 200 instead of 429 when limited, so validate response bodies.
+- Error codes: 400 retry later, 403 bad key, 404 player not found, 405 upstream error, 410 bad platform, 429 rate limited, 500 internal error. One known client library reports the API can return 200 instead of 429 when limited, so validate response bodies. Confirmed on 2026-10-04: `/nametouid` answers an unknown PC name with HTTP 200 and `{"Error": "Player not found. Please try again (err origin lookup)"}`, so errors must be detected from the body, not the status.
 - Show a clickable link labelled "Data provided by Apex Legends Status" to apexlegendsstatus.com on every page that shows API data.
 - Usage is fair-use only and keys can be suspended without notice ([usage rules](https://apexlegendsapi.com/usage-rules)). Cache aggressively.
-- The `/bridge` response field names used below (`toNextLevelPercent` and others) are not in the public docs. Confirm them against a recorded response in Phase 2 before building on them.
+- The `/bridge` field names used below are not in the public docs; they were confirmed against a response recorded on 2026-10-04 (`backend/tests/fixtures/als/bridge_ok.json`). The UID arrives as a string.
 
 - Commercial use: the usage rules do not mention it either way. Before putting ads on the site, ask ALS on their Discord for permission; the same channel is how the rate limit gets raised, and that limit is what caps tracked players.
 
@@ -110,8 +114,8 @@ Resolution flow for `/{platform}/{name}` (the route calls `/api/resolve`, which 
 
 1. Normalize the name (trim, case-insensitive compare).
 2. Check `player_aliases` for a cached match newer than 24 hours. Hit: return it.
-3. Miss: call `/nametouid`. 404: remember the miss in memory for 5 minutes so repeat lookups do not spend quota, and return 404. The page renders "player not found" with a hint that PC uses the EA name, not the Steam name.
-4. Upsert `players` and `player_aliases`, return `{ uid, platform, name }`; the route redirects to `/player/{platform}/{uid}`.
+3. Miss: call `/bridge?player=...`. Not found: remember the miss in memory for 5 minutes so repeat lookups do not spend quota, and return 404. The page renders "player not found" with a hint that PC uses the EA name, not the Steam name.
+4. Upsert `players` and `player_aliases` (the alias is the name the visitor typed, which ALS just resolved, not the display name in the response), store the response as the player's first snapshot (so the profile page that follows needs no second ALS call), return `{ uid, platform, name }`; the route redirects to `/player/{platform}/{uid}`.
 
 Profile page load (server-rendered, calling `GET /api/players/{platform}/{uid}`):
 
@@ -156,6 +160,7 @@ create table snapshots (
   platform       text not null,
   taken_at       timestamptz not null default now(),
   level          int,
+  level_prestige int not null default 0,
   level_progress int,
   rank_name      text,
   rank_div       int,
@@ -194,11 +199,11 @@ create table worker_heartbeat (
 
 Access: only the backend and worker reach the database, over `DATABASE_URL`. Leave Neon's Data API off.
 
-Storage budget. Storing a snapshot on every poll would be 200 players × 360 polls a day = 72,000 rows a day; at an assumed 5 to 10 KB of raw JSON each that is 360 to 720 MB a day, almost all of it duplicates. So:
+Storage budget. Three responses measured on 2026-10-04 were 9 KB, 14 KB and 22 KB; most of that is `legends.all`. Storing a snapshot on every poll would be 200 players × 360 polls a day = 72,000 rows a day, about 1 to 1.6 GB a day before Postgres compression, almost all of it duplicates. So:
 
-- A snapshot row is inserted only when `level`, `level_progress`, the rank fields, `selected_legend` or `trackers` differ from the player's latest snapshot. An unchanged poll only updates `players`.
-- `raw` is set to null on snapshots older than 30 days (config). At an assumed 20 changed snapshots per player per day, that is 200 × 20 × 30 = 120,000 rows holding raw JSON, about 0.6 to 1.2 GB. Neon's Launch plan bills storage by the GB with no cap, so this is a running cost, not a limit.
-- The response size and change rate are assumptions. Measure both from the Phase 2 fixture and the first week of tracking, then adjust the retention window.
+- A snapshot row is inserted only when `level`, `level_prestige`, `level_progress`, the rank fields, `selected_legend` or `trackers` differ from the player's latest snapshot. An unchanged poll only updates `players`.
+- `raw` is set to null on snapshots older than 30 days (config). At an assumed 20 changed snapshots per player per day, that is 200 × 20 × 30 = 120,000 rows holding raw JSON, about 1.7 to 2.6 GB before compression. Neon's Launch plan bills storage by the GB with no cap, so this is a running cost, not a limit.
+- The change rate is still an assumption. Measure it in the first week of tracking, then adjust the retention window.
 
 ## Polling worker and match derivation
 
@@ -209,7 +214,7 @@ Both the worker and the profile page load go through one function, `ingest_snaps
 1. Call `/bridge?uid=...&platform=...&merge=1&removeMerged=1`.
 2. Open a transaction and take `pg_advisory_xact_lock` on a hash of platform + UID, so two writers cannot diff against the same previous snapshot.
 3. Compare the response with the player's latest snapshot. If it changed, insert a snapshot and run match detection.
-4. Update `players`: `last_polled_at`, `current_name` (and the alias row) from the response, reset `not_found_count`.
+4. Update `players`: `last_polled_at`, `current_name` from the response, reset `not_found_count`. `current_name` is a display name only; it never creates or changes an alias, because for Steam players it is not a name ALS can resolve.
 
 The backend also holds an in-process lock per player around `ingest_snapshot`, so concurrent loads of one profile make one ALS call.
 
@@ -226,14 +231,15 @@ Rate budget: 200 tracked players all active at a 4-minute interval is 200 / 240 
 
 Match detection rules, comparing the latest stored snapshot A to the new snapshot B:
 
-- A match happened if `level` or `level_progress` (the API's `toNextLevelPercent`) increased, or if the legend is unchanged and any tracker present in both A and B increased.
+- A match happened if level progress increased, or if the legend is unchanged and any tracker present in both A and B increased. Level progress is compared as the triple (`level_prestige`, `level`, `level_progress`), in that order, because `level` restarts at each prestige; `level_progress` is the API's `toNextLevelPercent`.
 - A `rank_score` change on its own is not a match (split and season resets move it). When a match is detected, record `rank_score_delta` alongside it.
-- `level_progress_delta` = (B.level − A.level) × 100 + (B.level_progress − A.level_progress), in percentage points. There is no XP figure in the API, so XP itself cannot be stored.
+- `level_progress_delta` = (B.level − A.level) × 100 + (B.level_progress − A.level_progress), in percentage points, or null when `level_prestige` changed between A and B. There is no XP figure in the API, so XP itself cannot be stored.
 - If `selected_legend` is the same in A and B, `tracker_deltas` = B minus A for keys present in both, positive deltas only. Trackers can be re-equipped without a legend swap, so keys in only one snapshot are ignored.
-- If the legend changed, record the match with `legend = B.selected_legend` and empty `tracker_deltas`; deltas across a legend swap are not trustworthy.
+- If the legend changed, record the match with `legend = B.selected_legend` and empty `tracker_deltas`; deltas across a legend swap are not trustworthy. Possible refinement for Phase 4: trackers flagged `global` in the response are account-wide, so their deltas would still be valid across a swap.
 - Several games can land inside one polling window. Treat one detected row as "one or more matches" and label it that way in the UI.
 - Session gap: if the player's previous successful poll (`last_polled_at` before this one) was more than 30 minutes ago, insert the row with `kind = 'session_gap'` and null deltas instead of a match. The gap is measured from the last poll, not from A, because A can be hours old for a player who was idle.
 - Known limitation: level progress is a whole percent, so a short match that earns little XP on a legend with no moving tracker is missed.
+- Known limitation: a player at the level cap (level 500 on the last prestige tier) earns no more level progress, so their matches are only detected through tracker changes.
 
 All thresholds (poll intervals, rate caps, gap window, tracking expiry, raw retention) live in config, not code. The idle poll interval must stay below the gap window.
 
@@ -271,7 +277,7 @@ Next.js 16 App Router with TypeScript. Pages are server components that fetch fr
 | Page | Contents |
 | --- | --- |
 | Home `/` | Platform toggle (PC, PlayStation, Xbox), name search, map rotation card, Predator thresholds card |
-| Resolve `/{platform}/{name}` | Server redirect to the profile; not-found page explaining PC uses the EA name |
+| Resolve `/{platform}/{name}` | Server redirect to the profile; not-found page explaining PC uses the EA ID, that it differs from the Steam name, and how to find it (ea.com, sign in with Steam, Account Settings) |
 | Profile `/player/{platform}/{uid}` | Header (name, platform, level, rank badge + RP), selected legend with its trackers, "Track this player" button, last-updated time |
 | Trends tab | Line charts of level and rank score over time; one chart per tracker key with data |
 | Matches tab `/player/{platform}/{uid}/matches` | Table: time, legend, level progress delta, rank score delta, tracker deltas; rows labelled "1+ matches"; `session_gap` rows shown as a divider ("untracked activity") |
