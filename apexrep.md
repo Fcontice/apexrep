@@ -255,6 +255,7 @@ The FastAPI backend is the only thing that talks to ALS; the API key never reach
 | GET | `/api/players/{platform}/{uid}/history?days=30` | Snapshot series for charts (level, rank\_score, tracker values); `days` capped at 90 |
 | GET | `/api/players/{platform}/{uid}/matches?limit=50&before=cursor` | Derived matches, newest first, cursor-paginated on `(detected_at, id)` |
 | POST | `/api/players/{platform}/{uid}/track` | Starts tracking; idempotent; 409 when the cap is full |
+| GET | `/api/sitemap/players` | Tracked players, for the frontend's `sitemap.xml` |
 | GET | `/api/meta/maps` | Cached map rotation, refreshed every 60 s |
 | GET | `/api/meta/predator` | Cached Predator thresholds, refreshed every 15 min |
 | GET | `/api/health` | DB + last worker heartbeat |
@@ -265,7 +266,8 @@ Rules:
 - One `AlsClient` class wraps every ALS call: rate limiter, retries, typed errors (`PlayerNotFound`, `RateLimited`, `UpstreamError`).
 - The rate limiter is in-process, so the 5 per second ALS limit is split by config: worker 3 per second, backend 1.5 per second. This only holds with a single backend process; a Postgres-backed token bucket is the upgrade if the backend ever scales out.
 - Every call from Next.js carries a shared internal token header and the visitor's IP and user agent. The backend rejects requests without the token (except `/api/health`), so it needs no CORS and cannot be called around the frontend.
-- Basic per-IP rate limiting on `/api/resolve` and `/track`, keyed on the forwarded visitor IP, so the public site cannot burn the ALS quota.
+- Basic per-IP rate limiting on `/api/resolve` and `/track`, keyed on the forwarded visitor IP, so the public site cannot burn the ALS quota. Viewing a stored profile is not limited, but viewing a UID the site has never seen costs an ALS call, so it counts against the lookup limit, and a UID that ALS does not know is remembered for 5 minutes like an unknown name.
+- The meta caches do not retry ALS for 30 seconds after a failed refresh; they serve the previous value meanwhile.
 - A profile refresh never waits on the ALS budget: if the backend's slice is used up, serve the cached snapshot.
 - Cap tracked players with a config value (start at 200) so polling stays under the rate budget.
 - There is no public untrack route: without accounts, anyone could untrack anyone. Tracking ends on its own after 14 days without a profile view. When the cap is full, a new track request evicts the least recently viewed tracked player if its last view is more than 24 hours old; otherwise it returns 409.
@@ -273,14 +275,14 @@ Rules:
 
 ## Frontend pages
 
-Next.js 16 App Router with TypeScript. Pages are server components that fetch from the backend; the track button, tabs and charts are client components using TanStack Query and Recharts. Tailwind v4 for styling.
+Next.js 16 App Router with TypeScript. Pages are server components that fetch from the backend; only the track button and the Recharts charts are client components. Tabs and match pagination are plain links, so they work without JavaScript and each page has its own URL. TanStack Query is not used: nothing fetches from the browser yet. Tailwind v4 for styling.
 
 | Page | Contents |
 | --- | --- |
 | Home `/` | Platform toggle (PC, PlayStation, Xbox), name search, map rotation card, Predator thresholds card |
 | Resolve `/{platform}/{name}` | Server redirect to the profile; not-found page explaining PC uses the EA ID, that it differs from the Steam name, and how to find it (ea.com, sign in with Steam, Account Settings) |
 | Profile `/player/{platform}/{uid}` | Header (name, platform, level, rank badge + RP), selected legend with its trackers, "Track this player" button, last-updated time |
-| Trends tab | Line charts of level and rank score over time; one chart per tracker key with data |
+| Trends tab `/player/{platform}/{uid}/trends` | Line charts of level and rank score over time; one chart per tracker key and legend with data (trackers belong to a legend, so the same key on two legends is two counters). One measure per chart, each with a "view as table" fallback |
 | Matches tab `/player/{platform}/{uid}/matches` | Table: time, legend, level progress delta, rank score delta, tracker deltas; rows labelled "1+ matches"; `session_gap` rows shown as a divider ("untracked activity") |
 
 UI rules:
