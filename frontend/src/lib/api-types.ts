@@ -41,6 +41,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/players/{platform}/{uid}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Player History
+         * @description Snapshot series for charts, oldest first. days is capped by history_max_days.
+         */
+        get: operations["player_history_api_players__platform___uid__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/players/{platform}/{uid}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Player Matches
+         * @description Derived matches, newest first. One row can stand for more than one match.
+         */
+        get: operations["player_matches_api_players__platform___uid__matches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/players/{platform}/{uid}": {
         parameters: {
             query?: never;
@@ -50,6 +90,66 @@ export interface paths {
         };
         /** Player Profile */
         get: operations["player_profile_api_players__platform___uid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sitemap/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sitemap Players
+         * @description Tracked players, the only profiles the sitemap lists.
+         */
+        get: operations["sitemap_players_api_sitemap_players_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/meta/maps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Meta Maps
+         * @description Current and next map for pubs and ranked, cached for a minute.
+         */
+        get: operations["meta_maps_api_meta_maps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/meta/predator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Meta Predator
+         * @description Rank score needed for Predator on each platform, cached for 15 minutes.
+         */
+        get: operations["meta_predator_api_meta_predator_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -104,6 +204,93 @@ export interface components {
          * @enum {string}
          */
         HealthStatus: "ok" | "degraded" | "down";
+        /** HistoryPoint */
+        HistoryPoint: {
+            /**
+             * Taken At
+             * Format: date-time
+             */
+            taken_at: string;
+            /** Level */
+            level: number;
+            /** Level Prestige */
+            level_prestige: number;
+            /** Level Progress */
+            level_progress: number;
+            /** Rank Score */
+            rank_score: number | null;
+            /** Selected Legend */
+            selected_legend: string | null;
+            /** Trackers */
+            trackers: {
+                [key: string]: number;
+            };
+        };
+        /** HistoryResponse */
+        HistoryResponse: {
+            /** Points */
+            points: components["schemas"]["HistoryPoint"][];
+            /** Bucketed */
+            bucketed: boolean;
+        };
+        /** MapRotation */
+        MapRotation: {
+            battle_royale?: components["schemas"]["ModeRotation"] | null;
+            ranked?: components["schemas"]["ModeRotation"] | null;
+        };
+        /** MapSlot */
+        MapSlot: {
+            /** Map */
+            map: string;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+        };
+        /** MatchItem */
+        MatchItem: {
+            /** Id */
+            id: number;
+            kind: components["schemas"]["MatchKind"];
+            /**
+             * Detected At
+             * Format: date-time
+             */
+            detected_at: string;
+            /** Legend */
+            legend: string | null;
+            /** Level Progress Delta */
+            level_progress_delta: number | null;
+            /** Rank Score Delta */
+            rank_score_delta: number | null;
+            /** Tracker Deltas */
+            tracker_deltas: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * MatchKind
+         * @enum {string}
+         */
+        MatchKind: "match" | "session_gap";
+        /** MatchesResponse */
+        MatchesResponse: {
+            /** Items */
+            items: components["schemas"]["MatchItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** ModeRotation */
+        ModeRotation: {
+            current: components["schemas"]["MapSlot"];
+            next?: components["schemas"]["MapSlot"] | null;
+        };
         /**
          * PlatformSlug
          * @description Platform as it appears in URLs.
@@ -147,6 +334,24 @@ export interface components {
             /** Stale */
             stale: boolean;
         };
+        /** PredatorResponse */
+        PredatorResponse: {
+            pc: components["schemas"]["PredatorThreshold"] | null;
+            ps: components["schemas"]["PredatorThreshold"] | null;
+            xbox: components["schemas"]["PredatorThreshold"] | null;
+        };
+        /** PredatorThreshold */
+        PredatorThreshold: {
+            /** Rank Score */
+            rank_score: number;
+            /** Masters And Preds */
+            masters_and_preds: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** ResolveResponse */
         ResolveResponse: {
             /** Uid */
@@ -154,6 +359,19 @@ export interface components {
             platform: components["schemas"]["PlatformSlug"];
             /** Name */
             name: string;
+        };
+        /** SitemapPlayer */
+        SitemapPlayer: {
+            platform: components["schemas"]["PlatformSlug"];
+            /** Uid */
+            uid: string;
+            /** Last Updated */
+            last_updated: string | null;
+        };
+        /** SitemapResponse */
+        SitemapResponse: {
+            /** Players */
+            players: components["schemas"]["SitemapPlayer"][];
         };
         /** TrackResponse */
         TrackResponse: {
@@ -195,6 +413,8 @@ export interface operations {
             };
             header?: {
                 "X-Internal-Token"?: string | null;
+                "X-Client-IP"?: string | null;
+                "X-Client-User-Agent"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -237,6 +457,15 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Service Unavailable */
             503: {
                 headers: {
@@ -253,6 +482,8 @@ export interface operations {
             query?: never;
             header?: {
                 "X-Internal-Token"?: string | null;
+                "X-Client-IP"?: string | null;
+                "X-Client-User-Agent"?: string | null;
             };
             path: {
                 platform: components["schemas"]["PlatformSlug"];
@@ -291,6 +522,124 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    player_history_api_players__platform___uid__history_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: {
+                "X-Internal-Token"?: string | null;
+            };
+            path: {
+                platform: components["schemas"]["PlatformSlug"];
+                uid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    player_matches_api_players__platform___uid__matches_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                before?: string | null;
+            };
+            header?: {
+                "X-Internal-Token"?: string | null;
+            };
+            path: {
+                platform: components["schemas"]["PlatformSlug"];
+                uid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchesResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -354,6 +703,162 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sitemap_players_api_sitemap_players_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Internal-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    meta_maps_api_meta_maps_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Internal-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapRotation"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    meta_predator_api_meta_predator_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Internal-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredatorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

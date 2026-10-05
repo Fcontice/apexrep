@@ -31,13 +31,14 @@ async function forward(
     return Response.json({ detail: "upstream_unavailable" }, { status: 503 });
   }
 
-  return new Response(upstream.body, {
-    status: upstream.status,
-    headers: {
-      "Content-Type":
-        upstream.headers.get("content-type") ?? "application/json",
-    },
+  const headers = new Headers({
+    "Content-Type": upstream.headers.get("content-type") ?? "application/json",
   });
+  const retryAfter: string | null = upstream.headers.get("retry-after");
+  if (retryAfter !== null) {
+    headers.set("Retry-After", retryAfter);
+  }
+  return new Response(upstream.body, { status: upstream.status, headers });
 }
 
 export { forward as GET, forward as POST, forward as DELETE };

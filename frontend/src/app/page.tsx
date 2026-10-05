@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+
+import { MapRotationCard, PredatorCard } from "@/components/home-cards";
 import { SearchForm } from "@/components/search-form";
 
 export default function Home() {
@@ -13,6 +16,13 @@ export default function Home() {
         Playing on Steam? Search with your EA ID, which is usually not your
         Steam name.
       </p>
+      {/* Streamed in, so a slow stats service never delays the search box. */}
+      <Suspense fallback={null}>
+        <MapRotationCard />
+      </Suspense>
+      <Suspense fallback={null}>
+        <PredatorCard />
+      </Suspense>
     </main>
   );
 }

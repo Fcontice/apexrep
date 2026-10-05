@@ -13,6 +13,27 @@ export function formatNumber(value: number): string {
   return numberFormat.format(value);
 }
 
+/** 25 -> "+25", -20 -> "−20", 0 -> "0" */
+export function formatSigned(value: number): string {
+  if (value === 0) {
+    return "0";
+  }
+  const magnitude: string = numberFormat.format(Math.abs(value));
+  return value > 0 ? `+${magnitude}` : `−${magnitude}`;
+}
+
+const timeFormat = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "UTC",
+});
+
+/** "00:30 UTC" */
+export function formatTimeUtc(iso: string): string {
+  return `${timeFormat.format(new Date(iso))} UTC`;
+}
+
 /** "career_kills" -> "Career kills" */
 export function formatTrackerKey(key: string): string {
   const words: string = key.replaceAll("_", " ").trim();

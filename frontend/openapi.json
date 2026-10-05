@@ -44,6 +44,38 @@
               ],
               "title": "X-Internal-Token"
             }
+          },
+          {
+            "name": "X-Client-IP",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Ip"
+            }
+          },
+          {
+            "name": "X-Client-User-Agent",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-User-Agent"
+            }
           }
         ],
         "responses": {
@@ -86,6 +118,16 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "422": {
             "description": "Validation Error",
@@ -139,6 +181,38 @@
               ],
               "title": "X-Internal-Token"
             }
+          },
+          {
+            "name": "X-Client-IP",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Ip"
+            }
+          },
+          {
+            "name": "X-Client-User-Agent",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-User-Agent"
+            }
           }
         ],
         "responses": {
@@ -191,6 +265,226 @@
               }
             },
             "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/players/{platform}/{uid}/history": {
+      "get": {
+        "summary": "Player History",
+        "description": "Snapshot series for charts, oldest first. days is capped by history_max_days.",
+        "operationId": "player_history_api_players__platform___uid__history_get",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PlatformSlug"
+            }
+          },
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,20}$",
+              "title": "Uid"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3650,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          },
+          {
+            "name": "X-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/players/{platform}/{uid}/matches": {
+      "get": {
+        "summary": "Player Matches",
+        "description": "Derived matches, newest first. One row can stand for more than one match.",
+        "operationId": "player_matches_api_players__platform___uid__matches_get",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PlatformSlug"
+            }
+          },
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,20}$",
+              "title": "Uid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "name": "X-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchesResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           },
           "422": {
             "description": "Validation Error",
@@ -318,6 +612,217 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sitemap/players": {
+      "get": {
+        "summary": "Sitemap Players",
+        "description": "Tracked players, the only profiles the sitemap lists.",
+        "operationId": "sitemap_players_api_sitemap_players_get",
+        "parameters": [
+          {
+            "name": "X-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SitemapResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meta/maps": {
+      "get": {
+        "summary": "Meta Maps",
+        "description": "Current and next map for pubs and ranked, cached for a minute.",
+        "operationId": "meta_maps_api_meta_maps_get",
+        "parameters": [
+          {
+            "name": "X-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapRotation"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meta/predator": {
+      "get": {
+        "summary": "Meta Predator",
+        "description": "Rank score needed for Predator on each platform, cached for 15 minutes.",
+        "operationId": "meta_predator_api_meta_predator_get",
+        "parameters": [
+          {
+            "name": "X-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredatorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -421,6 +926,264 @@
           "down"
         ],
         "title": "HealthStatus"
+      },
+      "HistoryPoint": {
+        "properties": {
+          "taken_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Taken At"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level"
+          },
+          "level_prestige": {
+            "type": "integer",
+            "title": "Level Prestige"
+          },
+          "level_progress": {
+            "type": "integer",
+            "title": "Level Progress"
+          },
+          "rank_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank Score"
+          },
+          "selected_legend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Legend"
+          },
+          "trackers": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Trackers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "taken_at",
+          "level",
+          "level_prestige",
+          "level_progress",
+          "rank_score",
+          "selected_legend",
+          "trackers"
+        ],
+        "title": "HistoryPoint"
+      },
+      "HistoryResponse": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "bucketed": {
+            "type": "boolean",
+            "title": "Bucketed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points",
+          "bucketed"
+        ],
+        "title": "HistoryResponse"
+      },
+      "MapRotation": {
+        "properties": {
+          "battle_royale": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModeRotation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ranked": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModeRotation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "MapRotation"
+      },
+      "MapSlot": {
+        "properties": {
+          "map": {
+            "type": "string",
+            "title": "Map"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "map",
+          "start",
+          "end"
+        ],
+        "title": "MapSlot"
+      },
+      "MatchItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MatchKind"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          },
+          "legend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legend"
+          },
+          "level_progress_delta": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level Progress Delta"
+          },
+          "rank_score_delta": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank Score Delta"
+          },
+          "tracker_deltas": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Tracker Deltas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "detected_at",
+          "legend",
+          "level_progress_delta",
+          "rank_score_delta",
+          "tracker_deltas"
+        ],
+        "title": "MatchItem"
+      },
+      "MatchKind": {
+        "type": "string",
+        "enum": [
+          "match",
+          "session_gap"
+        ],
+        "title": "MatchKind"
+      },
+      "MatchesResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MatchItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "MatchesResponse"
+      },
+      "ModeRotation": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/MapSlot"
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MapSlot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "current"
+        ],
+        "title": "ModeRotation"
       },
       "PlatformSlug": {
         "type": "string",
@@ -554,6 +1317,71 @@
         ],
         "title": "PlayerProfile"
       },
+      "PredatorResponse": {
+        "properties": {
+          "pc": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PredatorThreshold"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ps": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PredatorThreshold"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "xbox": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PredatorThreshold"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "pc",
+          "ps",
+          "xbox"
+        ],
+        "title": "PredatorResponse"
+      },
+      "PredatorThreshold": {
+        "properties": {
+          "rank_score": {
+            "type": "integer",
+            "title": "Rank Score"
+          },
+          "masters_and_preds": {
+            "type": "integer",
+            "title": "Masters And Preds"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank_score",
+          "masters_and_preds",
+          "updated_at"
+        ],
+        "title": "PredatorThreshold"
+      },
       "ResolveResponse": {
         "properties": {
           "uid": {
@@ -575,6 +1403,52 @@
           "name"
         ],
         "title": "ResolveResponse"
+      },
+      "SitemapPlayer": {
+        "properties": {
+          "platform": {
+            "$ref": "#/components/schemas/PlatformSlug"
+          },
+          "uid": {
+            "type": "string",
+            "title": "Uid"
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platform",
+          "uid",
+          "last_updated"
+        ],
+        "title": "SitemapPlayer"
+      },
+      "SitemapResponse": {
+        "properties": {
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/SitemapPlayer"
+            },
+            "type": "array",
+            "title": "Players"
+          }
+        },
+        "type": "object",
+        "required": [
+          "players"
+        ],
+        "title": "SitemapResponse"
       },
       "TrackResponse": {
         "properties": {

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ProfileShell, ProfileUnavailable } from "@/components/profile-shell";
 import { TrackButton } from "@/components/track-button";
-import {
-  getPlayerProfile,
-  type BackendResult,
-  type PlayerProfile,
-} from "@/lib/backend";
+import type { PlayerProfile } from "@/lib/backend";
 import {
   formatNumber,
   formatRank,
@@ -14,26 +11,15 @@ import {
   formatUpdatedAt,
   levelTier,
 } from "@/lib/format";
-import { isPlatformSlug, PLATFORM_LABELS } from "@/lib/platform";
-
-const UID_PATTERN = /^[0-9]{1,20}$/;
+import { PLATFORM_LABELS } from "@/lib/platform";
+import { loadProfile } from "@/lib/profile-page";
 
 type ProfilePageProps = PageProps<"/player/[platform]/[uid]">;
-
-async function loadProfile(
-  props: ProfilePageProps,
-): Promise<BackendResult<PlayerProfile>> {
-  const { platform, uid } = await props.params;
-  if (!isPlatformSlug(platform) || !UID_PATTERN.test(uid)) {
-    return { status: "not_found" };
-  }
-  return getPlayerProfile(platform, uid);
-}
 
 export async function generateMetadata(
   props: ProfilePageProps,
 ): Promise<Metadata> {
-  const result = await loadProfile(props);
+  const result = await loadProfile(await props.params);
   if (result.status !== "ok") {
     return { title: "Player · ApexRep" };
   }
@@ -59,38 +45,19 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export default async function ProfilePage(props: ProfilePageProps) {
-  const result = await loadProfile(props);
+  const result = await loadProfile(await props.params);
   if (result.status === "not_found") {
     notFound();
   }
   if (result.status === "unavailable") {
-    return (
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-4 px-4 py-16">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Stats are unavailable right now
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          The stats service did not answer and there is no saved copy of this
-          player yet. Try again in a minute.
-        </p>
-      </main>
-    );
+    return <ProfileUnavailable />;
   }
 
   const profile: PlayerProfile = result.data;
   const trackers: [string, number][] = Object.entries(profile.trackers);
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-10">
-      <header className="flex flex-col gap-1">
-        <p className="text-sm text-zinc-500">
-          {PLATFORM_LABELS[profile.platform]}
-        </p>
-        <h1 className="break-words text-3xl font-semibold tracking-tight">
-          {profile.name}
-        </h1>
-      </header>
-
+    <ProfileShell profile={profile} active="overview">
       <dl className="grid grid-cols-2 gap-3">
         <Stat
           label={`Level · tier ${levelTier(profile.level_prestige)} of 4`}
@@ -156,6 +123,6 @@ export default async function ProfilePage(props: ProfilePageProps) {
           ? ". Newer data could not be loaded, so this may be out of date."
           : "."}
       </p>
-    </main>
+    </ProfileShell>
   );
 }

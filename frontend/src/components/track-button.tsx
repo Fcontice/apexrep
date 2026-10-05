@@ -9,6 +9,7 @@ import type { PlatformSlug } from "@/lib/platform";
 const FAILURE_MESSAGES: Record<Exclude<TrackOutcome, "ok">, string> = {
   full: "Tracking is full right now. Try again later.",
   not_found: "This player could not be found.",
+  rate_limited: "You have started tracking a lot of players. Try again later.",
   unavailable: "Tracking could not be started. Try again in a minute.",
 };
 

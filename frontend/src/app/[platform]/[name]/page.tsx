@@ -40,10 +40,14 @@ export default async function ResolvePage(
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 px-4 py-16">
       <h1 className="text-2xl font-semibold tracking-tight">
-        Stats are unavailable right now
+        {result.status === "rate_limited"
+          ? "Too many lookups"
+          : "Stats are unavailable right now"}
       </h1>
       <p className="text-zinc-600 dark:text-zinc-400">
-        The stats service did not answer. Try again in a minute.
+        {result.status === "rate_limited"
+          ? "You have looked up a lot of players in a short time. Try again in a few minutes."
+          : "The stats service did not answer. Try again in a minute."}
       </p>
       <SearchForm defaultPlatform={platform} defaultName={name} />
     </main>
