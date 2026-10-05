@@ -1,0 +1,114 @@
+{
+  "battle_royale": {
+    "current": {
+      "start": 1791154800,
+      "end": 1791160200,
+      "readableDate_start": "2026-10-04 23:00:00",
+      "readableDate_end": "2026-10-05 00:30:00",
+      "map": "Broken Moon",
+      "code": "broken_moon_rotation",
+      "DurationInSecs": 5400,
+      "DurationInMinutes": 90,
+      "asset": "https://apexlegendsstatus.com/assets/maps/Broken_Moon.png",
+      "remainingSecs": 2841,
+      "remainingMins": 47,
+      "remainingTimer": "00:47:21"
+    },
+    "next": {
+      "start": 1791160200,
+      "end": 1791165600,
+      "readableDate_start": "2026-10-05 00:30:00",
+      "readableDate_end": "2026-10-05 02:00:00",
+      "map": "World's Edge",
+      "code": "worlds_edge_rotation",
+      "DurationInSecs": 5400,
+      "DurationInMinutes": 90,
+      "asset": "https://apexlegendsstatus.com/assets/maps/Worlds_Edge.png"
+    }
+  },
+  "ranked": {
+    "current": {
+      "start": 1791144000,
+      "end": 1791160200,
+      "readableDate_start": "2026-10-04 20:00:00",
+      "readableDate_end": "2026-10-05 00:30:00",
+      "map": "World's Edge",
+      "code": "worlds_edge_rotation",
+      "DurationInSecs": 16200,
+      "DurationInMinutes": 270,
+      "asset": "https://apexlegendsstatus.com/assets/maps/Worlds_Edge.png",
+      "remainingSecs": 2841,
+      "remainingMins": 47,
+      "remainingTimer": "00:47:21"
+    },
+    "next": {
+      "start": 1791160200,
+      "end": 1791176400,
+      "readableDate_start": "2026-10-05 00:30:00",
+      "readableDate_end": "2026-10-05 05:00:00",
+      "map": "Olympus",
+      "code": "olympus_rotation",
+      "DurationInSecs": 16200,
+      "DurationInMinutes": 270,
+      "asset": "https://apexlegendsstatus.com/assets/maps/Olympus.png"
+    }
+  },
+  "ltm": {
+    "current": {
+      "start": 1791156600,
+      "end": 1791157500,
+      "readableDate_start": "2026-10-04 23:30:00",
+      "readableDate_end": "2026-10-04 23:45:00",
+      "map": "Fragment",
+      "code": "freedm_gungame_fragment",
+      "DurationInSecs": 900,
+      "DurationInMinutes": 15,
+      "isActive": true,
+      "eventName": "Gun Run",
+      "asset": "https://apexlegendsstatus.com/assets/maps/Worlds_Edge.png",
+      "remainingSecs": 141,
+      "remainingMins": 2,
+      "remainingTimer": "00:02:21"
+    },
+    "next": {
+      "start": 1791157500,
+      "end": 1791158400,
+      "readableDate_start": "2026-10-04 23:45:00",
+      "readableDate_end": "2026-10-05 00:00:00",
+      "map": "Skulltown",
+      "code": "freedm_tdm_skulltown",
+      "DurationInSecs": 900,
+      "DurationInMinutes": 15,
+      "isActive": true,
+      "eventName": "TDM",
+      "asset": "https://apexlegendsstatus.com/assets/maps/Arena_Skulltown.png"
+    }
+  },
+  "wildcard": {
+    "current": {
+      "start": 1791154800,
+      "end": 1791160200,
+      "readableDate_start": "2026-10-04 23:00:00",
+      "readableDate_end": "2026-10-05 00:30:00",
+      "map": "Olympus",
+      "code": "olympus_rotation",
+      "DurationInSecs": 5400,
+      "DurationInMinutes": 90,
+      "asset": "https://apexlegendsstatus.com/assets/maps/Olympus.png",
+      "remainingSecs": 2841,
+      "remainingMins": 47,
+      "remainingTimer": "00:47:21"
+    },
+    "next": {
+      "start": 1791160200,
+      "end": 1791165600,
+      "readableDate_start": "2026-10-05 00:30:00",
+      "readableDate_end": "2026-10-05 02:00:00",
+      "map": "E-District",
+      "code": "edistrict_rotation",
+      "DurationInSecs": 5400,
+      "DurationInMinutes": 90,
+      "asset": "https://apexlegendsstatus.com/assets/maps/E-District.png"
+    }
+  }
+}

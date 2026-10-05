@@ -31,6 +31,25 @@ class Settings(BaseSettings):
     alias_ttl_s: float = 86_400.0
     resolve_not_found_ttl_s: float = 300.0
 
+    # Per visitor IP. These protect the ALS quota and the tracked-player cap.
+    ip_limit_resolve_count: int = 30
+    ip_limit_resolve_window_s: float = 300.0
+    ip_limit_track_count: int = 10
+    ip_limit_track_window_s: float = 3600.0
+
+    # Raw ALS responses are dropped from snapshots older than this.
+    raw_retention_s: float = 30 * 86_400.0
+    worker_maintenance_interval_s: float = 3600.0
+
+    meta_maps_ttl_s: float = 60.0
+    meta_predator_ttl_s: float = 900.0
+    # After a failed refresh, serve the old value this long before asking ALS again.
+    meta_retry_after_failure_s: float = 30.0
+
+    history_max_days: int = 90
+    # A longer series is reduced to the last snapshot of each hour.
+    history_max_points: int = 2000
+
     db_pool_min_size: int = 1
     db_pool_max_size: int = 5
 

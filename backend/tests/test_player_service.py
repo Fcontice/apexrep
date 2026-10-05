@@ -235,3 +235,24 @@ async def test_crawler_on_unknown_uid_is_not_found_without_als_call(
     with pytest.raises(PlayerNotFound):
         await service.get_profile(Platform.PC, "999", is_crawler=True)
     assert als.by_uid_calls == 0
+
+
+async def test_unknown_uid_not_found_is_remembered_for_the_ttl(
+    service: PlayerService, als: FakeAls, clock: FakeClock
+) -> None:
+    als.error = PlayerNotFound("nope")
+    for _ in range(3):
+        with pytest.raises(PlayerNotFound):
+            await service.get_profile(Platform.PC, "999", is_crawler=False)
+    assert als.by_uid_calls == 1
+
+    clock.now += 301.0
+    with pytest.raises(PlayerNotFound):
+        await service.get_profile(Platform.PC, "999", is_crawler=False)
+    assert als.by_uid_calls == 2
+
+
+async def test_is_known_reflects_stored_players(service: PlayerService) -> None:
+    assert await service.is_known(Platform.PC, UID) is False
+    await service.resolve(Platform.PC, "xXfrankX")
+    assert await service.is_known(Platform.PC, UID) is True

@@ -73,13 +73,40 @@ async def record(settings: Settings, platform: Platform, name: str, out_dir: Pat
         _save(out_dir, "bridge_not_found.json", missing)
 
 
+async def record_meta(settings: Settings, out_dir: Path) -> None:
+    api_key = settings.als_api_key.get_secret_value()
+    if not api_key:
+        raise SystemExit("ALS_API_KEY is not set (put it in .env at the repo root)")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    async with httpx.AsyncClient(
+        base_url=settings.als_base_url,
+        timeout=settings.als_timeout_s,
+        headers={"Authorization": api_key},
+    ) as http:
+        rotation = await http.get("/maprotation", params={"version": "2"})
+        _require_success(rotation, "/maprotation")
+        _save(out_dir, "maprotation_ok.json", rotation)
+
+        await asyncio.sleep(PAUSE_BETWEEN_CALLS_S)
+        predator = await http.get("/predator")
+        _require_success(predator, "/predator")
+        _save(out_dir, "predator_ok.json", predator)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Record ALS responses as test fixtures.")
-    parser.add_argument("--name", required=True, help="player name (EA name on PC)")
+    parser.add_argument("--name", help="player name (EA name on PC); records /bridge fixtures")
     parser.add_argument("--platform", choices=[p.value for p in Platform], default="PC")
+    parser.add_argument("--meta", action="store_true", help="record /maprotation and /predator")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_DIR)
     args = parser.parse_args()
-    asyncio.run(record(get_settings(), Platform(args.platform), args.name, args.out))
+    if not args.name and not args.meta:
+        parser.error("pass --name, --meta, or both")
+    if args.name:
+        asyncio.run(record(get_settings(), Platform(args.platform), args.name, args.out))
+    if args.meta:
+        asyncio.run(record_meta(get_settings(), args.out))
 
 
 if __name__ == "__main__":

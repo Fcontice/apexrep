@@ -1,11 +1,14 @@
 import hmac
+import math
 import re
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel
 
+from apexrep.api.ip_limit import IpLimiters, IpRateLimiter
 from apexrep.config import Settings, get_settings
+from apexrep.meta import MetaService
 from apexrep.players.service import PlayerService
 
 # Headers the Next.js server sets on every call.
@@ -47,6 +50,41 @@ def get_client_info(
     return ClientInfo(ip=ip, is_crawler=is_crawler(user_agent))
 
 
+def get_ip_limiters(request: Request) -> IpLimiters:
+    limiters: IpLimiters = request.app.state.ip_limiters
+    return limiters
+
+
+def enforce_limit(limiter: IpRateLimiter, client: ClientInfo) -> None:
+    # Requests with no forwarded IP share one bucket, so they cannot dodge the limit.
+    retry_after_s = limiter.check(client.ip or "unknown")
+    if retry_after_s is not None:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="rate_limited",
+            headers={"Retry-After": str(math.ceil(retry_after_s))},
+        )
+
+
+def limit_resolve(
+    limiters: Annotated[IpLimiters, Depends(get_ip_limiters)],
+    client: Annotated[ClientInfo, Depends(get_client_info)],
+) -> None:
+    enforce_limit(limiters.resolve, client)
+
+
+def limit_track(
+    limiters: Annotated[IpLimiters, Depends(get_ip_limiters)],
+    client: Annotated[ClientInfo, Depends(get_client_info)],
+) -> None:
+    enforce_limit(limiters.track, client)
+
+
 def get_player_service(request: Request) -> PlayerService:
     service: PlayerService = request.app.state.players
+    return service
+
+
+def get_meta_service(request: Request) -> MetaService:
+    service: MetaService = request.app.state.meta
     return service

@@ -11,7 +11,14 @@ from apexrep.als.rate_limiter import Clock
 from apexrep.config import Settings
 from apexrep.db import Pool
 from apexrep.players import repo
-from apexrep.players.repo import StoredPlayer, StoredSnapshot
+from apexrep.players.repo import (
+    History,
+    MatchCursor,
+    StoredMatch,
+    StoredPlayer,
+    StoredSnapshot,
+    TrackedPlayer,
+)
 
 NEGATIVE_CACHE_MAX_ENTRIES: int = 2000
 
@@ -41,6 +48,11 @@ class ProfileResult(BaseModel):
     stale: bool
 
 
+class MatchPage(BaseModel):
+    items: list[StoredMatch]
+    next_cursor: MatchCursor | None
+
+
 def normalize_name(name: str) -> str:
     return name.strip().lower()
 
@@ -59,7 +71,8 @@ class PlayerService:
         self._settings: Settings = settings
         self._clock: Clock = clock
         self._refreshes: dict[tuple[str, Platform], asyncio.Task[None]] = {}
-        self._not_found_until: dict[tuple[Platform, str], float] = {}
+        # Keyed by ("name" | "uid", platform, value).
+        self._not_found_until: dict[tuple[str, Platform, str], float] = {}
 
     async def resolve(self, platform: Platform, name: str) -> ResolvedPlayer:
         name_lower = normalize_name(name)
@@ -72,8 +85,8 @@ class PlayerService:
         if alias is not None:
             return ResolvedPlayer(uid=alias.uid, platform=platform, name=alias.current_name)
 
-        cache_key = (platform, name_lower)
-        if self._not_found_until.get(cache_key, 0.0) > self._clock():
+        cache_key = ("name", platform, name_lower)
+        if self._recently_not_found(cache_key):
             raise PlayerNotFound(f"{name_lower!r} was not found recently")
 
         try:
@@ -88,8 +101,15 @@ class PlayerService:
         await repo.upsert_alias(self._pool, platform, name_lower, snapshot.uid)
         return ResolvedPlayer(uid=snapshot.uid, platform=platform, name=snapshot.name)
 
+    async def is_known(self, platform: Platform, uid: str) -> bool:
+        """Whether the site has this player stored. Viewing an unknown one costs an ALS call."""
+        return await repo.player_exists(self._pool, uid, platform)
+
     async def get_profile(self, platform: Platform, uid: str, *, is_crawler: bool) -> ProfileResult:
         player = await repo.fetch_player(self._pool, uid, platform)
+        uid_key = ("uid", platform, uid)
+        if player is None and self._recently_not_found(uid_key):
+            raise PlayerNotFound(f"{platform.value}:{uid} was not found recently")
 
         # Crawlers only ever get stored data: no ALS call, no view recorded.
         if not is_crawler and self._needs_refresh(player):
@@ -101,6 +121,7 @@ class PlayerService:
                     await self._refresh(uid, platform)
                 except PlayerNotFound:
                     if not has_snapshot:
+                        self._remember_not_found(uid_key)
                         raise
                 except AlsError as exc:
                     if not has_snapshot:
@@ -128,6 +149,34 @@ class PlayerService:
             raise PlayerNotFound(f"cannot track unknown player {platform.value}:{uid}")
         return tracked_since
 
+    async def list_tracked(self) -> list[TrackedPlayer]:
+        """Tracked players, for the sitemap."""
+        return await repo.fetch_tracked_players(
+            self._pool, limit=self._settings.tracked_players_cap
+        )
+
+    async def get_history(self, platform: Platform, uid: str, *, days: int) -> History:
+        return await repo.fetch_history(
+            self._pool,
+            uid,
+            platform,
+            days=min(days, self._settings.history_max_days),
+            max_points=self._settings.history_max_points,
+        )
+
+    async def get_matches(
+        self, platform: Platform, uid: str, *, limit: int, before: MatchCursor | None
+    ) -> MatchPage:
+        # One extra row tells whether another page exists.
+        rows = await repo.fetch_matches(self._pool, uid, platform, limit=limit + 1, before=before)
+        items = rows[:limit]
+        next_cursor = (
+            MatchCursor(detected_at=items[-1].detected_at, id=items[-1].id)
+            if len(rows) > limit
+            else None
+        )
+        return MatchPage(items=items, next_cursor=next_cursor)
+
     def _needs_refresh(self, player: StoredPlayer | None) -> bool:
         if player is None or player.snapshot is None or player.polled_age_s is None:
             return True
@@ -148,7 +197,10 @@ class PlayerService:
         snapshot = await self._als.bridge_by_uid(uid, platform)
         await repo.store_snapshot(self._pool, snapshot, session_gap_s=self._settings.session_gap_s)
 
-    def _remember_not_found(self, cache_key: tuple[Platform, str]) -> None:
+    def _recently_not_found(self, cache_key: tuple[str, Platform, str]) -> bool:
+        return self._not_found_until.get(cache_key, 0.0) > self._clock()
+
+    def _remember_not_found(self, cache_key: tuple[str, Platform, str]) -> None:
         now = self._clock()
         if len(self._not_found_until) >= NEGATIVE_CACHE_MAX_ENTRIES:
             self._not_found_until = {

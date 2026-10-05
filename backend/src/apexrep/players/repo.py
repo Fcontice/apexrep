@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 import asyncpg
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from apexrep.als.models import Platform, PlayerSnapshot
 from apexrep.db import Pool
@@ -104,6 +104,15 @@ async def fetch_player(pool: Pool, uid: str, platform: Platform) -> StoredPlayer
         polled_age_s=row["polled_age_s"],
         snapshot=_snapshot_from_row(row),
     )
+
+
+async def player_exists(pool: Pool, uid: str, platform: Platform) -> bool:
+    exists: bool = await pool.fetchval(
+        "select exists(select 1 from players where uid = $1 and platform = $2)",
+        uid,
+        platform.value,
+    )
+    return exists
 
 
 def _comparable(snapshot: PlayerSnapshot | StoredSnapshot) -> tuple[object, ...]:
@@ -269,6 +278,160 @@ async def upsert_alias(pool: Pool, platform: Platform, name_lower: str, uid: str
         name_lower,
         uid,
     )
+
+
+# --- history and matches -------------------------------------------------------
+
+
+class HistoryPoint(BaseModel):
+    taken_at: datetime
+    level: int
+    level_prestige: int
+    level_progress: int
+    rank_score: int | None
+    # Trackers belong to this legend, so a tracker series only makes sense per legend.
+    selected_legend: str | None
+    trackers: dict[str, int]
+
+
+class History(BaseModel):
+    points: list[HistoryPoint]
+    # True when the series was reduced to the last snapshot of each hour.
+    bucketed: bool
+
+
+class StoredMatch(BaseModel):
+    id: int
+    kind: MatchKind
+    detected_at: datetime
+    legend: str | None
+    level_progress_delta: int | None
+    rank_score_delta: int | None
+    tracker_deltas: dict[str, int]
+
+
+class MatchCursor(BaseModel):
+    detected_at: datetime
+    # Bounded to what a bigint column holds, so a forged cursor fails validation.
+    id: int = Field(ge=0, le=2**63 - 1)
+
+
+async def fetch_history(
+    pool: Pool, uid: str, platform: Platform, *, days: int, max_points: int
+) -> History:
+    """Snapshots from the last `days` days, oldest first."""
+    count: int = await pool.fetchval(
+        """
+        select count(*) from snapshots
+        where uid = $1 and platform = $2 and taken_at > now() - make_interval(days => $3)
+        """,
+        uid,
+        platform.value,
+        days,
+    )
+    bucketed = count > max_points
+    columns = (
+        "taken_at, level, level_prestige, level_progress, rank_score, selected_legend, trackers"
+    )
+    if bucketed:
+        query = f"""
+            select distinct on (date_trunc('hour', taken_at)) {columns}
+            from snapshots
+            where uid = $1 and platform = $2 and taken_at > now() - make_interval(days => $3)
+            order by date_trunc('hour', taken_at), taken_at desc, id desc
+        """
+    else:
+        query = f"""
+            select {columns}
+            from snapshots
+            where uid = $1 and platform = $2 and taken_at > now() - make_interval(days => $3)
+            order by taken_at, id
+        """
+    rows = await pool.fetch(query, uid, platform.value, days)
+    points = [
+        HistoryPoint(
+            taken_at=row["taken_at"],
+            level=row["level"],
+            level_prestige=row["level_prestige"],
+            level_progress=row["level_progress"],
+            rank_score=row["rank_score"],
+            selected_legend=row["selected_legend"],
+            trackers=json.loads(row["trackers"]),
+        )
+        for row in rows
+    ]
+    return History(points=points, bucketed=bucketed)
+
+
+async def fetch_matches(
+    pool: Pool, uid: str, platform: Platform, *, limit: int, before: MatchCursor | None
+) -> list[StoredMatch]:
+    """Matches newest first, starting strictly after the `before` cursor."""
+    rows = await pool.fetch(
+        """
+        select id, kind, detected_at, legend, level_progress_delta, rank_score_delta,
+               tracker_deltas
+        from matches
+        where uid = $1 and platform = $2
+          and ($3::timestamptz is null or (detected_at, id) < ($3::timestamptz, $4::bigint))
+        order by detected_at desc, id desc
+        limit $5
+        """,
+        uid,
+        platform.value,
+        before.detected_at if before is not None else None,
+        before.id if before is not None else None,
+        limit,
+    )
+    return [
+        StoredMatch(
+            id=row["id"],
+            kind=MatchKind(row["kind"]),
+            detected_at=row["detected_at"],
+            legend=row["legend"],
+            level_progress_delta=row["level_progress_delta"],
+            rank_score_delta=row["rank_score_delta"],
+            tracker_deltas=json.loads(row["tracker_deltas"]),
+        )
+        for row in rows
+    ]
+
+
+class TrackedPlayer(BaseModel):
+    uid: str
+    platform: Platform
+    last_polled_at: datetime | None
+
+
+async def fetch_tracked_players(pool: Pool, *, limit: int) -> list[TrackedPlayer]:
+    rows = await pool.fetch(
+        """
+        select uid, platform, last_polled_at from players
+        where is_tracked
+        order by tracked_since desc
+        limit $1
+        """,
+        limit,
+    )
+    return [
+        TrackedPlayer(
+            uid=row["uid"], platform=Platform(row["platform"]), last_polled_at=row["last_polled_at"]
+        )
+        for row in rows
+    ]
+
+
+async def clear_old_raw(pool: Pool, *, max_age_s: float) -> int:
+    """Drop the stored raw ALS response from old snapshots. Returns how many."""
+    status: str = await pool.execute(
+        """
+        update snapshots set raw = null
+        where raw is not null and taken_at < now() - make_interval(secs => $1::float8)
+        """,
+        max_age_s,
+    )
+    # The command tag is "UPDATE <row count>".
+    return int(status.rsplit(" ", 1)[-1])
 
 
 # --- tracking ----------------------------------------------------------------

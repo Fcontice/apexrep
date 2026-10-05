@@ -12,4 +12,5 @@ RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/backend/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["uvicorn", "apexrep.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Hosts such as Railway set PORT; locally it falls back to 8000.
+CMD ["sh", "-c", "exec uvicorn apexrep.api.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

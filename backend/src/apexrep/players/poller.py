@@ -1,6 +1,7 @@
 import logging
 import time
 
+import asyncpg
 from pydantic import BaseModel
 
 from apexrep.als.errors import AlsError, PlayerNotFound, RateLimited
@@ -16,6 +17,7 @@ logger = logging.getLogger("apexrep.poller")
 
 class PollSummary(BaseModel):
     expired: int = 0
+    raw_cleared: int = 0
     polled: int = 0
     changed: int = 0
     matches: int = 0
@@ -43,6 +45,8 @@ class Poller:
         self._clock: Clock = clock
         self._backoff_s: float = 0.0
         self._resume_at: float = 0.0
+        # Due immediately, so the cleanup also runs once at worker start.
+        self._next_maintenance_at: float = clock()
 
     async def run_once(self) -> PollSummary:
         settings = self._settings
@@ -50,6 +54,17 @@ class Poller:
         summary.expired = await repo.expire_tracking(
             self._pool, max_idle_s=settings.tracking_expiry_s
         )
+        if self._clock() >= self._next_maintenance_at:
+            # Scheduled before it runs and contained if it fails, so a broken cleanup
+            # can never stop the polling below.
+            self._next_maintenance_at = self._clock() + settings.worker_maintenance_interval_s
+            try:
+                summary.raw_cleared = await repo.clear_old_raw(
+                    self._pool, max_age_s=settings.raw_retention_s
+                )
+            except (asyncpg.PostgresError, asyncpg.InterfaceError, OSError):
+                logger.exception("raw retention cleanup failed")
+
         if self._clock() < self._resume_at:
             summary.backing_off = True
             return summary

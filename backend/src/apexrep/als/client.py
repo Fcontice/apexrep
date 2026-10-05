@@ -4,8 +4,8 @@ import httpx
 from pydantic import JsonValue
 
 from apexrep.als.errors import UpstreamError, error_for_body, error_for_status, error_message
-from apexrep.als.models import Platform, PlayerSnapshot
-from apexrep.als.parser import parse_bridge
+from apexrep.als.models import MapRotation, Platform, PlayerSnapshot, PredatorThreshold
+from apexrep.als.parser import parse_bridge, parse_map_rotation, parse_predator
 from apexrep.als.rate_limiter import RateLimiter, Sleep
 from apexrep.config import Settings
 
@@ -45,6 +45,12 @@ class AlsClient:
             {**identity, "platform": platform.value, "merge": "1", "removeMerged": "1"},
         )
         return parse_bridge(body, platform)
+
+    async def map_rotation(self) -> MapRotation:
+        return parse_map_rotation(await self._get_json("/maprotation", {"version": "2"}))
+
+    async def predator(self) -> dict[Platform, PredatorThreshold]:
+        return parse_predator(await self._get_json("/predator", {}))
 
     def backlog_s(self) -> float:
         return self._rate_limiter.backlog_s()

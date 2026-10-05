@@ -17,6 +17,7 @@ apexrep-export-openapi = "apexrep.api.export_openapi:main"
 apexrep-lookup = "apexrep.als.lookup:main"
 apexrep-migrate = "apexrep.migrate:main"
 apexrep-record-fixture = "apexrep.als.record:main"
+apexrep-seed-demo = "apexrep.dev.seed_demo:main"
 apexrep-worker = "apexrep.worker:main"
 
 [dependency-groups]

@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field, JsonValue, ValidationError, field_validator
 
 from apexrep.als.errors import UpstreamError
-from apexrep.als.models import Platform, PlayerSnapshot
+from apexrep.als.models import MapRotation, Platform, PlayerSnapshot, PredatorThreshold
 
 
 def _to_int(value: object) -> int | None:
@@ -78,6 +80,40 @@ class _BridgeResponse(BaseModel):
     global_: _Global = Field(alias="global")
     legends: _Legends = _Legends()
     realtime: _Realtime = _Realtime()
+
+
+class _PredatorEntry(BaseModel):
+    rank_score: int = Field(alias="val")
+    masters_and_preds: int = Field(alias="totalMastersAndPreds")
+    updated_at: datetime = Field(alias="updateTimestamp")
+
+
+class _PredatorResponse(BaseModel):
+    rp: dict[str, _PredatorEntry] = Field(alias="RP")
+
+
+def parse_map_rotation(body: JsonValue) -> MapRotation:
+    try:
+        return MapRotation.model_validate(body)
+    except ValidationError as exc:
+        raise UpstreamError(f"unexpected /maprotation response shape: {exc}") from exc
+
+
+def parse_predator(body: JsonValue) -> dict[Platform, PredatorThreshold]:
+    try:
+        response = _PredatorResponse.model_validate(body)
+    except ValidationError as exc:
+        raise UpstreamError(f"unexpected /predator response shape: {exc}") from exc
+    # ALS also reports SWITCH, which the site does not cover.
+    return {
+        platform: PredatorThreshold(
+            rank_score=entry.rank_score,
+            masters_and_preds=entry.masters_and_preds,
+            updated_at=entry.updated_at,
+        )
+        for platform in Platform
+        if (entry := response.rp.get(platform.value)) is not None
+    }
 
 
 def parse_bridge(body: JsonValue, platform: Platform) -> PlayerSnapshot:
