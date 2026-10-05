@@ -6,6 +6,8 @@ Apex Legends stats tracker. The build spec is [apexrep.md](apexrep.md).
 - `frontend/`: Next.js app.
 - `migrations/`: plain SQL, applied in filename order by `apexrep-migrate`.
 
+Deployment steps are in [DEPLOY.md](DEPLOY.md).
+
 ## Run everything in Docker
 
 ```
@@ -34,6 +36,17 @@ npm run dev
 ```
 
 The frontend needs `BACKEND_URL` and `INTERNAL_TOKEN` in `frontend/.env.local`; the token must match the backend's `INTERNAL_TOKEN` in `.env`.
+
+## Demo data
+
+To see the Trends and Matches tabs without waiting for real history, seed a made-up player into the local database:
+
+```
+cd backend
+uv run apexrep-seed-demo
+```
+
+Then open http://localhost:3000/player/pc/9000000000001. Re-running replaces the demo rows. Development only.
 
 ## API types
 
